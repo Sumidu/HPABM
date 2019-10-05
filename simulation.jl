@@ -1,11 +1,13 @@
 using Random
 using LightGraphs
 using CSV
+using Logging
 
 include("network_generators.jl")
 include("agent_generators.jl")
 include("message_generator.jl")
 
+Logging.
 
 """
 This function determines message spreading.
@@ -21,9 +23,8 @@ function message_spread!(
     message::OpinionMessage,
     debug = false,
 )
-    if debug
-        println("Message from $source to $target with $message")
-    end
+
+    @debug "Message from $source to $target with $message"
 
     s_a = agents[source]
     s_a.state = agent_sent
