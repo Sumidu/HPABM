@@ -71,7 +71,7 @@ end
 Function to run the whole simulation using agent_count agents and max_ticks as
 a limitation to the simulation length
 """
-function run(agent_count, max_ticks)
+function run(agent_count, max_ticks, message_gen)
 
     #TODO: Make more flexible to determine the generators from the arguments
     # This would allow to run batches from determined runs
@@ -82,7 +82,7 @@ function run(agent_count, max_ticks)
     start_agent = rand(1:agent_count)
     agents[start_agent].state = agent_sending
 
-    mes = generateRandomMessage()
+    mes = message_gen()
 
     for i = 1:max_ticks
         step_model(agents, g, mes)
@@ -94,14 +94,14 @@ end
 
 
 """
-Run the *run* method in 
+Run the *run* method in
 """
 function batchrun()
 end
 
 
 Random.seed!(1)
-@time (agents, network) = run(10^3, 100)
+@time (agents, network) = run(10^3, 100, generateRandomMessage)
 
 
 
