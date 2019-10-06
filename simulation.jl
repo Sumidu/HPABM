@@ -73,19 +73,35 @@ function step_model(rng, agents, network, message)
 end
 
 function evaluate(runid, pseudo_seed, step, agents, network, start_agent)
-    return (runid,pseudo_seed,step,
-            start_agent,
-            count(isNew, agents),
-            count(isSending, agents),
-            count(hasSeen, agents),
-            count(hasRejected, agents),
-            count(hasSent, agents))
+    return (
+        runid,
+        pseudo_seed,
+        step,
+        start_agent,
+        count(isNew, agents),
+        count(isSending, agents),
+        count(hasSeen, agents),
+        count(hasRejected, agents),
+        count(hasSent, agents),
+    )
 end
 
 function tuple2df(tuple_array)
     res = DataFrame(tuple_array)
-    names!(res, [:runid, :pseudo_seed, :step, :start_agent, :new_agents, :sending,
-                 :seen, :rejected, :sent])
+    names!(
+        res,
+        [
+         :runid,
+         :pseudo_seed,
+         :step,
+         :start_agent,
+         :new_agents,
+         :sending,
+         :seen,
+         :rejected,
+         :sent,
+        ],
+    )
     return res
 end
 
@@ -94,12 +110,20 @@ end
 Function to run the whole simulation using agent_count agents and max_ticks as
 a limitation to the simulation length
 """
-function run_simulation(rng, agent_count, max_ticks, agent_gen, network_gen, message_gen; runid::Int64 = 1)
+function run_simulation(
+    rng,
+    agent_count,
+    max_ticks,
+    agent_gen,
+    network_gen,
+    message_gen;
+    runid::Int64 = 1,
+)
 
     pseudo_seed = Random.rand(rng, Int32)
 
     agents = [agent_gen(rng) for i = 1:agent_count]
-    network = network_gen(rng, agents)
+    network = network_gen(rng = rng, agents = agents)
 
     start_agent = rand(rng, 1:agent_count)
     agents[start_agent].state = agent_sending
@@ -112,8 +136,10 @@ function run_simulation(rng, agent_count, max_ticks, agent_gen, network_gen, mes
         step_model(rng, agents, network, message)
 
         # add to df
-        push!(res, evaluate(runid, pseudo_seed, i, agents, network, start_agent))
-        #println("Tick: $i")
+        push!(
+            res,
+            evaluate(runid, pseudo_seed, i, agents, network, start_agent),
+        )
     end
     return res
 end
@@ -122,7 +148,7 @@ end
 
 
 function print_progress(i::Int64, max::Int64)
-    if i % (max/10) == 0
+    if i % (max / 10) == 0
         @info "Finished slice $(Int(round(10*i/max, digits=0))) of 10 slices"
     end
 end
@@ -131,20 +157,33 @@ end
 """
 Run the *run* method in
 """
-function batchrun(;batches::Int64 = 10, agents::Int64 = 100, steps::Int64 = 25,
-                   agent_generator, network_generator, message_generator)
+function batchrun(
+    ;
+    batches::Int64 = 10,
+    agents::Int64 = 100,
+    steps::Int64 = 25,
+    agent_generator,
+    network_generator,
+    message_generator,
+)
     @info "Starting run with $batches batches, $agents agents, $steps steps."
 
 
-    rngs = [x = Random.MersenneTwister(i) for i in 1:batches]
+    rngs = [x = Random.MersenneTwister(i) for i = 1:batches]
 
     dv = Vector{Tuple}()
     #data_store = Array{DataFrames.DataFrame}
     #Threads.@threads
-    for i in 1:batches
-        dv_step = run_simulation(rngs[i], agents, steps,
-         agent_generator, network_generator, message_generator,
-         runid = i)
+    for i = 1:batches
+        dv_step = run_simulation(
+            rngs[i],
+            agents,
+            steps,
+            agent_generator,
+            network_generator,
+            message_generator,
+            runid = i,
+        )
 
         append!(dv, dv_step)
         print_progress(i, batches)
@@ -155,15 +194,24 @@ end
 
 
 
-df = batchrun(batches = 100, agents = 100, steps = 100,
-              agent_generator = generateRandomAgent,
-              network_generator = generateRandomNetwork,
-              message_generator = generateRandomMessage)
+function generateRandomNetwork_d3(; rng, agents)
+    return generateRandomNetwork(rng = rng, agents = agents, density = 3)
+end
+
+
+df = batchrun(
+    batches = 100,
+    agents = 100,
+    steps = 100,
+    agent_generator = generateRandomAgent,
+    network_generator = generateRandomNetwork_d3,
+    message_generator = generateRandomMessage,
+)
 
 
 @info "Writing file... $(size(df,1)) lines"
 CSV.write("output/results.csv", df)
 @info "done."
 
-checkstring = Random.randstring(MersenneTwister(abs(df[!,:pseudo_seed][1])))
+checkstring = Random.randstring(MersenneTwister(abs(df[!, :pseudo_seed][1])))
 @info "Result checksum string $checkstring"

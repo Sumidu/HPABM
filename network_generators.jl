@@ -16,9 +16,9 @@ end
 
 # Function to generate  random network.
 # edges are drawn from uniform distribution over agents
-function generateRandomNetwork(rng, agents, density = 2)
+function generateRandomNetwork(;rng, agents, density = 2)
     agent_count = length(agents)
-    edge_count = agent_count * density
+    edge_count = Int(round(agent_count * density))
     g = SimpleGraph(agent_count)
 
     sp = Random.Sampler(rng, 1:agent_count)
