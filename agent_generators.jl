@@ -72,3 +72,14 @@ function generateRandomAgent(rng::MersenneTwister)
     a.noticing_threshold = rand(rng)
     return a
 end
+
+function generateNormalRandomAgent(rng::MersenneTwister)
+    a = OpinionAgent(0, 0, 0, 0, 0, 0, agent_new)
+    a.extraversion = randn(rng)
+    a.openness = randn(rng)
+    a.cognitive_attitude = randn(rng)
+    a.affective_attitude = randn(rng)
+    a.posting_threshold = randn(rng)
+    a.noticing_threshold = randn(rng)
+    return a
+end

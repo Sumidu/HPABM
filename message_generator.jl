@@ -15,3 +15,8 @@ function generateRandomMessage(rng)
     a = OpinionMessage(rand(rng), rand(rng))
     return a
 end
+
+function generateNormalRandomMessage(rng)
+    a = OpinionMessage(randn(rng), randn(rng))
+    return a
+end
