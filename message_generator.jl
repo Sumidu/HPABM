@@ -11,7 +11,7 @@ end
 
 
 
-function generateRandomMessage()
-    a = OpinionMessage(rand(), rand())
+function generateRandomMessage(rng)
+    a = OpinionMessage(rand(rng), rand(rng))
     return a
 end

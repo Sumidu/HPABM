@@ -24,6 +24,21 @@ end
 
 
 # Test functions for agent_state
+function isNew(agent)
+    if agent.state == agent_new
+        return true
+    end
+    return false
+end
+
+function isSending(agent)
+    if agent.state == agent_sending
+        return true
+    end
+    return false
+end
+
+
 function hasSeen(agent)
     if agent.state == agent_seen
         return true
@@ -47,13 +62,13 @@ end
 
 
 
-function generateRandomAgent()
+function generateRandomAgent(rng::MersenneTwister)
     a = OpinionAgent(0, 0, 0, 0, 0, 0, agent_new)
-    a.extraversion = rand()
-    a.openness = rand()
-    a.cognitive_attitude = rand()
-    a.affective_attitude = rand()
-    a.posting_threshold = rand()
-    a.noticing_threshold = rand()
+    a.extraversion = rand(rng)
+    a.openness = rand(rng)
+    a.cognitive_attitude = rand(rng)
+    a.affective_attitude = rand(rng)
+    a.posting_threshold = rand(rng)
+    a.noticing_threshold = rand(rng)
     return a
 end

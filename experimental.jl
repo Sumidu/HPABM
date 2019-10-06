@@ -1,3 +1,8 @@
+# This is a file were I test stuff!
+# not part of the project
+# but part for learning
+
+
 using Distributions
 using Random
 d2 = MvNormal([0.;0.],
