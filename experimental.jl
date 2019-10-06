@@ -47,3 +47,13 @@ test
 function nrange(x)
     (tanh(x) + 1) / 2
 end
+
+
+
+function testRangeRun(range)
+    for i in range
+        println(i)
+    end
+end
+
+testRangeRun(2:2)

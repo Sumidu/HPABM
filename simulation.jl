@@ -72,17 +72,20 @@ function step_model(rng, agents, network, message)
     end
 end
 
-function evaluate(runid, pseudo_seed, step, agents, network, start_agent)
+function evaluate(runid, pseudo_seed, step, agents, network, start_agent, message)
     return (
         runid,
         pseudo_seed,
         step,
+        length(agents),
         start_agent,
         count(isNew, agents),
         count(isSending, agents),
         count(hasSeen, agents),
         count(hasRejected, agents),
         count(hasSent, agents),
+        message.cognitive_value,
+        message.affective_value
     )
 end
 
@@ -94,12 +97,15 @@ function tuple2df(tuple_array)
          :runid,
          :pseudo_seed,
          :step,
+         :agent_count,
          :start_agent,
          :new_agents,
          :sending,
          :seen,
          :rejected,
          :sent,
+         :cognitive_value,
+         :affective_value
         ],
     )
     return res
@@ -133,12 +139,17 @@ function run_simulation(
     res = Vector{Tuple}()
 
     for i = 1:max_ticks
+
+        # if no more senders
+        if !any(isSending.(agents))
+            break;
+        end
         step_model(rng, agents, network, message)
 
         # add to df
         push!(
             res,
-            evaluate(runid, pseudo_seed, i, agents, network, start_agent),
+            evaluate(runid, pseudo_seed, i, agents, network, start_agent, message),
         )
     end
     return res
@@ -160,13 +171,13 @@ Run the *run* method in
 function batchrun(
     ;
     batches::Int64 = 10,
-    agents::Int64 = 100,
+    agents = 100:100,
     steps::Int64 = 25,
     agent_generator,
     network_generator,
     message_generator,
 )
-    @info "Starting run with $batches batches, $agents agents, $steps steps."
+
 
 
     rngs = [x = Random.MersenneTwister(i) for i = 1:batches]
@@ -174,19 +185,22 @@ function batchrun(
     dv = Vector{Tuple}()
     #data_store = Array{DataFrames.DataFrame}
     #Threads.@threads
-    for i = 1:batches
-        dv_step = run_simulation(
-            rngs[i],
-            agents,
-            steps,
-            agent_generator,
-            network_generator,
-            message_generator,
-            runid = i,
-        )
+    for agent_count in agents
+        @info "Starting run with $batches batches, $agent_count agents, $steps steps."
+        for i = 1:batches
+            dv_step = run_simulation(
+                rngs[i],
+                agent_count,
+                steps,
+                agent_generator,
+                network_generator,
+                message_generator,
+                runid = i,
+                )
 
-        append!(dv, dv_step)
-        print_progress(i, batches)
+            append!(dv, dv_step)
+            print_progress(i, batches)
+        end
     end
 
     return tuple2df(dv)
@@ -200,11 +214,11 @@ end
 
 
 df = batchrun(
-    batches = 100,
-    agents = 100,
-    steps = 100,
+    batches = 1000,
+    agents = 3000:3000,
+    steps = 25,
     agent_generator = generateRandomAgent,
-    network_generator = generateRandomNetwork_d3,
+    network_generator = generateBarabasi,
     message_generator = generateRandomMessage,
 )
 

@@ -10,5 +10,8 @@ Pkg.add("Distributions")
 Pkg.add("Statistics")
 Pkg.add("DataFrames")
 Pkg.add("RCall")
+Pkg.add("GraphLayout")
+Pkg.add("GraphPlot")
+Pkg.add("SNAPDatasets")
 
 Pkg.build()
