@@ -11,7 +11,6 @@ Pkg.add("Statistics")
 Pkg.add("DataFrames")
 Pkg.add("DataFramesMeta")
 Pkg.add("RCall")
-Pkg.add("GraphLayout")
 Pkg.add("GraphPlot")
 Pkg.add("SNAPDatasets")
 
