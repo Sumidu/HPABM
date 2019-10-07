@@ -216,7 +216,7 @@ end
 df = batchrun(
     batches = 1000,
     agents = 3000:3000,
-    steps = 25,
+    steps = 50,
     agent_generator = generateRandomAgent,
     network_generator = generateBarabasi,
     message_generator = generateRandomMessage,
