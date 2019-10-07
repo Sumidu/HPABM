@@ -1,0 +1,49 @@
+---
+title: "HappieSim"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::material:
+    highlight: kate
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=FALSE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+
+library(tidyverse)
+```
+
+# Analysis
+
+```{r read_data}
+
+filename <- "../output/results.csv"
+
+results <- read_csv(filename)
+
+
+
+results %>% 
+  ggplot() +
+  aes(x = step, y = seen, group = runid) + geom_line()
+
+results %>% group_by(runid) %>% arrange(-step) %>% top_n(1, step) %>% 
+  ggplot() +
+  aes(x = agent_count, y = seen) + geom_violin()
+
+```
+
+
+# Descriptions
