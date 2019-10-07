@@ -185,7 +185,7 @@ function batchrun(
     dv = Vector{Tuple}()
     #data_store = Array{DataFrames.DataFrame}
     #Threads.@threads
-    for agent_count in agents
+    Threads.@thread for agent_count in agents
         @info "Starting run with $batches batches, $agent_count agents, $steps steps."
         for i = 1:batches
             dv_step = run_simulation(
@@ -215,10 +215,10 @@ end
 
 df = batchrun(
     batches = 1000,
-    agents = 3000:3000,
-    steps = 50,
+    agents = 4039:4039,
+    steps = 100,
     agent_generator = generateRandomAgent,
-    network_generator = generateBarabasi,
+    network_generator = generateFacebook,
     message_generator = generateRandomMessage,
 )
 

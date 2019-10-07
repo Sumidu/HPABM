@@ -41,7 +41,7 @@ results %>%
 
 results %>% group_by(runid) %>% arrange(-step) %>% top_n(1, step) %>% 
   ggplot() +
-  aes(x = agent_count, y = seen) + geom_violin()
+  aes(x = cognitive_value, y = seen, color = affective_value) + geom_point()
 
 ```
 
