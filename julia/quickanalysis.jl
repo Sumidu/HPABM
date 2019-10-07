@@ -15,5 +15,7 @@ R"library(tidyverse)"
 R"ggplot($df) + aes(x = step, y = seen/agent_count, group = factor(runid), color = affective_value) + geom_line(alpha = $alpha_value)"
 
 
+using DataVoyager
 
-@where(df, :step .> 20)
+
+v = Voyager(df)

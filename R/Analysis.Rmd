@@ -37,12 +37,24 @@ results <- read_csv(filename)
 
 results %>% 
   ggplot() +
-  aes(x = step, y = seen, group = runid) + geom_line()
+  aes(x = step, y = sent/agent_count, group = runid, color = factor(affective_value))+ geom_line(alpha = 0.3) + 
+  facet_wrap(factor(affective_value)~agent_count)
 
 results %>% group_by(runid) %>% arrange(-step) %>% top_n(1, step) %>% 
   ggplot() +
-  aes(x = cognitive_value, y = seen, color = affective_value) + geom_point()
+  aes(x = cognitive_value, y = seen) + geom_boxplot()
 
+
+final_results <- results %>% group_by(runid) %>% arrange(-step) %>% top_n(1, step)
+
+
+final_results %>% filter(affective_value > 0.5) %>% mutate(percent = sent/agent_count) %>% 
+  filter(percent > 0.4) %>% 
+  ggplot() + aes(x=percent) + geom_histogram()
+
+cor(final_results$affective_value, final_results$sent)
+
+lm(sent ~ affective_value + cognitive_value + agent_count, data = final_results )
 ```
 
 

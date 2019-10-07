@@ -12,6 +12,7 @@ function generateNetworkLiMinai(agents, community_count, community_size, ve, a)
 
     # fail reimplement soon
     g = SimpleGraph(agent_count)
+    @error "Not implemented yet"
 end
 
 
@@ -28,7 +29,7 @@ end
 
 function generateFacebook(;rng, agents)
     agent_count = length(agents)
-    #agent_count = 430
+    #agent_count = 4039
     g = SNAPDatasets.loadsnap(:facebook_combined)
     verts = length(vertices(g))
     if agent_count > verts

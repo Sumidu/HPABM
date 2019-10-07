@@ -15,9 +15,9 @@ using SNAPDatasets
 
 g = barabasi_albert(100, 1)
 
-g2 = watts_strogatz(10000, 150, 0.1)
+g2 = watts_strogatz(100, 50, 0.1)
 
-gplot(g2)
+gplot(g)
 
 
 g = static_scale_free(100, 200, 2.4, seed = 2)
@@ -26,3 +26,7 @@ gplot(g)
 
 
 g = SNAPDatasets.loadsnap(:facebook_combined)
+
+
+g = SNAPDatasets.loadsnap(:ego_twitter_u)
+gplot(g)

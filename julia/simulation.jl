@@ -3,6 +3,7 @@ using LightGraphs
 using CSV
 using Logging
 using DataFrames
+using Dates
 #using BenchmarkTools
 
 include("network_generators.jl")
@@ -21,8 +22,7 @@ function message_spread!(
     agents,
     source,
     target,
-    message::OpinionMessage,
-    debug = false,
+    message::OpinionMessage
 )
 
     @debug "Message from $source to $target with $message"
@@ -30,6 +30,10 @@ function message_spread!(
     s_a = agents[source]
     s_a.state = agent_sent
     t_a = agents[target]
+
+    if hasSeen(t_a) || hasSent(t_a) || hasRejected(t_a)
+        return
+    end
 
     # noticing?
     if message.affective_value < t_a.noticing_threshold
@@ -52,12 +56,20 @@ function message_spread!(
 end
 
 
-function evaluateMessage(agent, message)
+function evaluate2Message(agent, message)
     affective_process = sqrt(message.affective_value * agent.affective_attitude)
     cognitive_process = sqrt(message.cognitive_value * agent.cognitive_attitude)
     eval = sqrt(affective_process * cognitive_process)
+    return eval
 end
 
+
+function evaluateMessage(agent, message)
+    affective_process = (message.affective_value + agent.affective_attitude)/2
+    cognitive_process = (message.cognitive_value + agent.cognitive_attitude)/2
+    eval = sqrt(affective_process * cognitive_process)
+    return eval
+end
 
 """
 Function to run an individual simulation step
@@ -122,16 +134,32 @@ function run_simulation(
     max_ticks,
     agent_gen,
     network_gen,
-    message_gen;
+    message_gen,
+    random_start_agent = false;
     runid::Int64 = 1,
 )
 
     pseudo_seed = Random.rand(rng, Int32)
 
+    #agent_count = 100
     agents = [agent_gen(rng) for i = 1:agent_count]
+    # sort all agents by criterion extraversion
+    sort!(agents, by = a -> a.extraversion, rev = true )
+
+    # generate network
     network = network_gen(rng = rng, agents = agents)
 
-    start_agent = rand(rng, 1:agent_count)
+    # get the permuation ordering of the network by degree centrality
+    ordering = sortperm(degree(network), rev = true)
+
+    # apply permuation on agents
+    agents = agents[ordering]
+
+    if random_start_agent
+        start_agent = rand(rng, 1:agent_count)
+    else
+        start_agent = findmax(degree(network))[2]
+    end
     agents[start_agent].state = agent_sending
 
     message = message_gen(rng)
@@ -144,6 +172,7 @@ function run_simulation(
         if !any(isSending.(agents))
             break;
         end
+
         step_model(rng, agents, network, message)
 
         # add to df
@@ -160,7 +189,8 @@ end
 
 function print_progress(i::Int64, max::Int64)
     if i % (max / 10) == 0
-        @info "Finished slice $(Int(round(10*i/max, digits=0))) of 10 slices"
+        rightnow = Dates.Time(Dates.now())
+        @info "Finished slice $(Int(round(10*i/max, digits=0))) of 10 slices $rightnow"
     end
 end
 
@@ -171,7 +201,7 @@ Run the *run* method in
 function batchrun(
     ;
     batches::Int64 = 10,
-    agents = 100:100,
+    agent_range = 100:100,
     steps::Int64 = 25,
     agent_generator,
     network_generator,
@@ -184,8 +214,7 @@ function batchrun(
 
     dv = Vector{Tuple}()
     #data_store = Array{DataFrames.DataFrame}
-    #Threads.@threads
-    Threads.@thread for agent_count in agents
+    Threads.@threads for agent_count in agent_range
         @info "Starting run with $batches batches, $agent_count agents, $steps steps."
         for i = 1:batches
             dv_step = run_simulation(
@@ -215,11 +244,11 @@ end
 
 df = batchrun(
     batches = 1000,
-    agents = 4039:4039,
-    steps = 100,
-    agent_generator = generateRandomAgent,
-    network_generator = generateFacebook,
-    message_generator = generateRandomMessage,
+    agent_range = [100,1000,4039],
+    steps = 15,
+    agent_generator = generatePersonalityAgent,
+    network_generator = generateBarabasi,
+    message_generator = generateFourTypeMessage,
 )
 
 
