@@ -13,3 +13,7 @@ alpha_value = min(500/num_runs, 1)
 R"library(tidyverse)"
 
 R"ggplot($df) + aes(x = step, y = seen/agent_count, group = factor(runid), color = affective_value) + geom_line(alpha = $alpha_value)"
+
+
+
+@where(df, :step .> 20)
