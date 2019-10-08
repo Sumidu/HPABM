@@ -90,7 +90,8 @@ end
 
 
 @info "Writing file... $(size(df,1)) lines"
-CSV.write("output/results.csv", df)
+fn_out = joinpath("output", "results.csv")
+CSV.write(fn_out, df)
 @info "done."
 
 checkstring = Random.randstring(MersenneTwister(abs(df[!, :pseudo_seed][1])))

@@ -38,7 +38,8 @@ results <- read_csv(filename) %>% select(-batches)
 
 
 results %>% 
-  filter(agent_generator == "generatePersonalityAgent") %>% 
+  filter(agent_generator == "generatePersonalityAgent") %>%
+  
   ggplot() +
   aes(x = step, y = sent/agent_count, group = runid, color = factor(affective_value))+ geom_line(alpha = 0.3) + 
   facet_wrap(factor(affective_value)~agent_count)
