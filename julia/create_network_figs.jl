@@ -14,7 +14,7 @@ function myplot(g, filename = "networkplot.pdf"; nodesize_multiplier = 2)
     nodesize = [log(degree(g, v)+3)/10 for v in vertices(g)]
     nodefillc = [RGBA(0.1,0.1,0.1, 0.66) for v in vertices(g)]
     plt = gplot(g, nodesize = nodesize * nodesize_multiplier, nodefillc = nodefillc)
-    draw(PDF("output/" * filename, 8cm, 8cm), plt)
+    draw(PDF(joinpath("../output/", filename), 8cm, 8cm), plt)
 end
 
 function pruneIsolatedVertices!(g)
