@@ -57,3 +57,18 @@ function testRangeRun(range)
 end
 
 testRangeRun(2:2)
+
+function f(x)
+end
+
+function f2(x)
+end
+
+functions = (f,f2)
+numrange = 1:100
+numrange2 = 1:3
+
+x = [(f,n, n2) for n in functions, n in numrange, n2 in numrange2]
+
+
+x[1]

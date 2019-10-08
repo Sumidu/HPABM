@@ -83,3 +83,7 @@ function generateRandomNetwork(;rng, agents, density = 2)
     end
     return g
 end
+
+function generateRandomNetwork_d3(; rng, agents)
+    return generateRandomNetwork(rng = rng, agents = agents, density = 3)
+end

@@ -89,7 +89,6 @@ function evaluate(runid, pseudo_seed, step, agents, network, start_agent, messag
         runid,
         pseudo_seed,
         step,
-        length(agents),
         start_agent,
         count(isNew, agents),
         count(isSending, agents),
@@ -109,7 +108,6 @@ function tuple2df(tuple_array)
          :runid,
          :pseudo_seed,
          :step,
-         :agent_count,
          :start_agent,
          :new_agents,
          :sending,
@@ -183,85 +181,3 @@ function run_simulation(
     end
     return res
 end
-
-
-
-
-function print_progress(i::Int64, max::Int64)
-    if i % (max / 10) == 0
-        rightnow = Dates.Time(Dates.now())
-        @info "Finished slice $(Int(round(10*i/max, digits=0))) of 10 slices $rightnow"
-    end
-end
-
-
-"""
-Run the *run* method in
-"""
-function batchrun(
-    ;
-    batches::Int64 = 10,
-    agent_range = 100:100,
-    steps::Int64 = 25,
-    agent_generator,
-    network_generator,
-    message_generator,
-)
-
-
-
-    rngs = [x = Random.MersenneTwister(i) for i = 1:batches]
-
-    dv = Vector{Tuple}()
-    #data_store = Array{DataFrames.DataFrame}
-    Threads.@threads for agent_count in agent_range
-        @info "Starting run with $batches batches, $agent_count agents, $steps steps."
-        for i = 1:batches
-            dv_step = run_simulation(
-                rngs[i],
-                agent_count,
-                steps,
-                agent_generator,
-                network_generator,
-                message_generator,
-                runid = i,
-                )
-
-            append!(dv, dv_step)
-            print_progress(i, batches)
-        end
-    end
-
-    return tuple2df(dv)
-end
-
-
-
-function generateRandomNetwork_d3(; rng, agents)
-    return generateRandomNetwork(rng = rng, agents = agents, density = 3)
-end
-
-
-
-
-df1 = batchrun(
-    batches = 100,
-    agent_range = [100,1000,4039],
-    steps = 15,
-    agent_generator = generatePersonalityAgent,
-    network_generator = generateFacebook,
-    message_generator = generateFourTypeMessage,
-)
-
-
-nrow(df1)
-
-#hcat(df1, repeat("test", nrow(df1)))
-
-df = df1
-@info "Writing file... $(size(df,1)) lines"
-CSV.write("output/results.csv", df)
-@info "done."
-
-checkstring = Random.randstring(MersenneTwister(abs(df[!, :pseudo_seed][1])))
-@info "Result checksum string $checkstring"
