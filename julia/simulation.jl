@@ -242,16 +242,23 @@ function generateRandomNetwork_d3(; rng, agents)
 end
 
 
-df = batchrun(
-    batches = 1000,
+
+
+df1 = batchrun(
+    batches = 100,
     agent_range = [100,1000,4039],
     steps = 15,
     agent_generator = generatePersonalityAgent,
-    network_generator = generateBarabasi,
+    network_generator = generateFacebook,
     message_generator = generateFourTypeMessage,
 )
 
 
+nrow(df1)
+
+#hcat(df1, repeat("test", nrow(df1)))
+
+df = df1
 @info "Writing file... $(size(df,1)) lines"
 CSV.write("output/results.csv", df)
 @info "done."

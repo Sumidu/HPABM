@@ -27,6 +27,28 @@ function generateBarabasi(;rng, agents, density = 2)
     return g
 end
 
+function generateWattsStrogatz(;rng, agents, density = 2)
+    agent_count = length(agents)
+    edge_count = Int(round(agent_count * density))
+    # rng = MersenneTwister(1)
+    # agent_count = 100
+    # edge_count = 200
+    # density = 2
+    g = watts_strogatz(agent_count, 4, 0.8, seed = rand(rng,Int64))
+    return g
+end
+
+function generateScaleFree(;rng, agents, density = 2)
+    agent_count = length(agents)
+    edge_count = Int(round(agent_count * density))
+    # rng = MersenneTwister(1)
+    # agent_count = 100
+    # edge_count = 200
+    g = static_scale_free(agent_count, edge_count, 2.5, seed = rand(rng,Int64))
+    return g
+end
+
+
 function generateFacebook(;rng, agents)
     agent_count = length(agents)
     #agent_count = 4039
