@@ -30,3 +30,6 @@ g = SNAPDatasets.loadsnap(:facebook_combined)
 
 g = SNAPDatasets.loadsnap(:ego_twitter_u)
 gplot(g)
+
+
+g
