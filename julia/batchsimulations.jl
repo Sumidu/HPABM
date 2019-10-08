@@ -5,6 +5,7 @@
 #   The configuration is loaded by a configfile.jl
 
 include("simulation.jl")
+include("slacker.jl")
 
 function print_progress(i::Int64, max::Int64)
     if i % (max / 10) == 0
@@ -65,6 +66,7 @@ config = [(b, a, s, ag, ng, mg) for b in batches, a in agent_range, s in step, a
 df = DataFrame()
 
 # run each configuration
+start_time = time()
 for conf in config
     @info "Running config $conf"
     @time df1 = batchrun(
@@ -87,12 +89,23 @@ for conf in config
     df1 = hcat(df1, df2)
     append!(df, df1)
 end
-
+total_runtime = time() - start_time
 
 @info "Writing file... $(size(df,1)) lines"
 fn_out = joinpath("output", "results.csv")
 CSV.write(fn_out, df)
 @info "done."
+
+ms = Dates.Millisecond(Int(round(total_runtime * 1000)))
+rt = Dates.canonicalize(Dates.CompoundPeriod(ms))
+
+message = "The $(length(config)) simulations on $(gethostname()) have completed in $rt."
+
+if true
+    sendSlackMessage("#digimuen", message; icon_emoji = ":juliabot:")
+else
+    @info message
+end
 
 checkstring = Random.randstring(MersenneTwister(abs(df[!, :pseudo_seed][1])))
 @info "Result checksum string $checkstring"
