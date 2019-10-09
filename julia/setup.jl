@@ -18,5 +18,7 @@ Pkg.add("Cairo")
 Pkg.add("Fontconfig")
 Pkg.add("Gadfly")
 Pkg.add("Colors")
+Pkg.add("HTTP")
+Pkg.add("JSON")
 
 Pkg.build()
