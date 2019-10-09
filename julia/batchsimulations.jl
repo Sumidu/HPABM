@@ -56,7 +56,7 @@ end
 
 
 
-include("config_demo.jl")
+include("config_haapie.jl")
 
 config = [(b, a, s, ag, ng, mg) for b in batches, a in agent_range, s in step, ag in agent_generators, ng in network_generators, mg in message_generators]
 
@@ -107,5 +107,5 @@ else
     @info message
 end
 
-checkstring = Random.randstring(MersenneTwister(abs(df[!, :pseudo_seed][1])))
-@info "Result checksum string $checkstring"
+#checkstring = Random.randstring(MersenneTwister(abs(df[!, :pseudo_seed][1])))
+#@info "Result checksum string $checkstring"

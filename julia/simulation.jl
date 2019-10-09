@@ -96,7 +96,8 @@ function evaluate(runid, pseudo_seed, step, agents, network, start_agent, messag
         count(hasRejected, agents),
         count(hasSent, agents),
         message.cognitive_value,
-        message.affective_value
+        message.affective_value,
+        length(edges(network))
     )
 end
 
@@ -115,7 +116,8 @@ function tuple2df(tuple_array)
          :rejected,
          :sent,
          :cognitive_value,
-         :affective_value
+         :affective_value,
+         :edge_count
         ],
     )
     return res

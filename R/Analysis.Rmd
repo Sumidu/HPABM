@@ -7,7 +7,7 @@ output:
 ---
 
 
-```{r knitr_init, echo=FALSE, cache=FALSE}
+```{r knitr_init, cache=FALSE, include=FALSE}
 library(knitr)
 library(rmdformats)
 
@@ -19,37 +19,143 @@ opts_chunk$set(echo=FALSE,
                tidy=TRUE,
                comment=NA,
                message=FALSE,
-               warning=FALSE)
+               warning=FALSE, 
+               fig.height = 5,
+               fig.width = 7)
 opts_knit$set(width=75)
 
 library(tidyverse)
+library(scales)
+library(gt)
 ```
 
 # Analysis
 
-```{r read_data}
-
+```{r read_data, cache=TRUE}
 filename <- "../output/results.csv"
+results <- read_csv(filename) %>% 
+  mutate(agent_generator = factor(agent_generator, 
+                                  levels = c("generatePersonalityAgent", "generateRandomAgent"),
+                                  labels = c("Personality", "Random")
+                                  ),
+         network_generator = factor(network_generator,
+                                    levels = c("generateBarabasi", "generateFacebook", "generateRandomNetwork", "generateScaleFree", "generateWattsStrogatz"),
+                                    labels = c("Barabasi Albert", "Facebook", "Random", "Scale Free", "Watts Strogatz")),
+         value = paste0(affective_value,"/",cognitive_value) 
+         ) %>% mutate(content_type = factor(value, levels = rev(c("0.2/0.2", "0.2/0.8", "0.8/0.2", "0.8/0.8")),
+                                     labels = rev(c("weak content", "mostly cognitive", "mostly affective", "both"))))
+
+# Only the last step
+```
 
 
-results <- read_csv(filename) %>% select(-batches)
+```{r visualize_1, cache=TRUE}
 
+count_select <- 4039
+simulation_count <- results %>% 
+  filter(agent_count == count_select, step == 1) %>% count() %>% pull()
 
-
-
-results %>% 
-  filter(agent_generator == "generatePersonalityAgent") %>%
-  
+(p <- results %>% 
+  filter(agent_count == count_select) %>% 
+  #sample_n(1000) %>% 
   ggplot() +
-  aes(x = step, y = sent/agent_count, group = runid, color = factor(affective_value))+ geom_line(alpha = 0.3) + 
-  facet_wrap(factor(affective_value)~agent_count)
+  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  facet_grid(factor(agent_generator)~network_generator) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_colour_brewer(palette = "Set1") +
+  guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  labs(title = "Spread of messages by content type, agent, and network",
+       subtitle = "Network penetration depends mostly on agent type and content",
+       caption = paste0("Each line represents the spread of a message in one simulation (of ",simulation_count," simulations)"),
+       x = "Simulation step", y = paste0("Proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
+    theme_bw())
 
+ggsave("../output/spread1.png", p, width = 7, height = 5, dpi = 600)
+```
+
+```{r visualize_2, cache=TRUE}
+
+count_select <- 2000
+simulation_count <- results %>% 
+  filter(agent_count == count_select, step == 1) %>% count() %>% pull()
+
+(p <- results %>% 
+  filter(agent_count == count_select) %>% 
+  #sample_n(1000) %>% 
+  ggplot() +
+  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  facet_grid(factor(agent_generator)~network_generator) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_colour_brewer(palette = "Set1") +
+  guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  labs(title = "Spread of messages by content type, agent, and network",
+       subtitle = "Network penetration depends mostly on agent type and content",
+       caption = paste0("Each line represents the spread of a message in one simulation (of ",simulation_count," simulations)"),
+       x = "Simulation step", y = paste0("Proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
+    theme_bw())
+
+ggsave("../output/spread2.png", p, width = 7, height = 5, dpi = 600)
+```
+
+```{r visualize_3, cache=TRUE}
+
+count_select <- 1000
+simulation_count <- results %>% 
+  filter(agent_count == count_select, step == 1) %>% count() %>% pull()
+
+(p <- results %>% 
+  filter(agent_count == count_select) %>% 
+  #sample_n(1000) %>% 
+  ggplot() +
+  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  facet_grid(factor(agent_generator)~network_generator) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_colour_brewer(palette = "Set1") +
+  guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  labs(title = "Spread of messages by content type, agent, and network",
+       subtitle = "Network penetration depends mostly on agent type and content",
+       caption = paste0("Each line represents the spread of a message in one simulation (of ",simulation_count," simulations)"),
+       x = "Simulation step", y = paste0("Proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
+    theme_bw())
+
+ggsave("../output/spread3.png", p, width = 7, height = 5, dpi = 600)
+```
+
+
+```{r}
+results %>% 
+  filter(step == 1) %>%  
+  group_by(agent_generator, network_generator, agent_count) %>% 
+  summarize(mean_edges = mean(edge_count), 
+            edges_se = sd(edge_count)/sqrt(n()),
+            
+            simulations = n()) %>% 
+  ungroup() %>% 
+  spread(agent_count, simulations) %>% 
+  gt() %>% 
+  tab_header("Overview of batch simulation count by configuration") %>% 
+   tab_row_group(
+    group = "Personality based Agents",
+    rows = 1:5
+    ) %>% 
+  tab_row_group(
+    group = "Random Agents",
+    rows = 6:10
+    ) %>% 
+  tab_spanner("Agent Count", columns = vars("1000","2000","4039")) %>% 
+  cols_hide(vars("agent_generator")) %>% 
+  cols_label(network_generator = "Network type") 
+  
+```
+
+
+```{r read_data_3}
 results %>% group_by(runid) %>% arrange(-step) %>% top_n(1, step) %>% 
   ggplot() +
   aes(x = cognitive_value, y = seen) + geom_boxplot()
 
 
-final_results <- results %>% group_by(runid) %>% arrange(-step) %>% top_n(1, step)
+
 
 
 final_results %>% filter(affective_value > 0.5) %>% mutate(percent = sent/agent_count) %>% 
