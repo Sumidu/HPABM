@@ -158,21 +158,21 @@ results %>%
 
 
 ```{r read_data_3}
-results %>% group_by(runid) %>% arrange(-step) %>% top_n(1, step) %>% 
+final_results <- results %>% group_by(runid, agent_generator, network_generator) %>% arrange(-step) %>% slice(1) 
+
+
+final_results %>% 
   ggplot() +
-  aes(x = cognitive_value, y = seen) + geom_boxplot()
+  aes(x = network_generator, y = seen) + geom_boxplot()
 
 
 
 
 
-final_results %>% filter(affective_value > 0.5) %>% mutate(percent = sent/agent_count) %>% 
-  filter(percent > 0.4) %>% 
-  ggplot() + aes(x=percent) + geom_histogram()
 
 cor(final_results$affective_value, final_results$sent)
 
-lm(sent ~ affective_value + cognitive_value + agent_count, data = final_results )
+lm(sent ~ affective_value + cognitive_value + agent_count + agent_generator + network_generator, data = final_results )
 ```
 
 
