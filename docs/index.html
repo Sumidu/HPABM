@@ -1182,85 +1182,98 @@ $(document).ready(function () {
 <div id="vzonbolxfu" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
   <thead>
     <tr>
-      <th colspan="4" class="gt_heading gt_title gt_font_normal gt_center gt_bottom_border" style>Overview of batch simulation count by configuration</th>
+      <th colspan="5" class="gt_heading gt_title gt_font_normal gt_center" style>Overview of network properties by configuration</th>
     </tr>
-    
+    <tr>
+      <th colspan="5" class="gt_heading gt_subtitle gt_font_normal gt_center gt_bottom_border" style>In total 10 000 simulations were run using 10 different settings.</th>
+    </tr>
   </thead>
   <tr>
     <th class="gt_col_heading gt_center gt_columns_bottom_border" rowspan="2" colspan="1">Network type</th>
-    <th class="gt_col_heading gt_center gt_columns_top_border gt_column_spanner" rowspan="1" colspan="3">Agent Count</th>
+    <th class="gt_col_heading gt_center gt_columns_bottom_border" rowspan="2" colspan="1"># of simulations</th>
+    <th class="gt_col_heading gt_center gt_columns_top_border gt_column_spanner" rowspan="1" colspan="3">Edges by network size (and standard error)</th>
   </tr>
   <tr>
-    <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">1000</th>
-    <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">2000</th>
-    <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">4039</th>
+    <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">1000 agents</th>
+    <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">2000 agents</th>
+    <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">4039 agents</th>
   </tr>
   <body class="gt_table_body">
     <tr class="gt_group_heading_row">
-      <td colspan="4" class="gt_group_heading">Personality based Agents</td>
+      <td colspan="5" class="gt_group_heading">Personality based agents</td>
     </tr>
     <tr>
       <td class="gt_row gt_center">Barabasi Albert</td>
       <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
+      <td class="gt_row gt_right">   999 ± 0.00</td>
+      <td class="gt_row gt_right"> 1,999 ± 0.00</td>
+      <td class="gt_row gt_right"> 4,038 ± 0.00</td>
     </tr>
     <tr>
       <td class="gt_row gt_center gt_striped">Facebook</td>
       <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
+      <td class="gt_row gt_right gt_striped"> 5,409 ±11.16</td>
+      <td class="gt_row gt_right gt_striped">21,629 ±26.24</td>
+      <td class="gt_row gt_right gt_striped">88,234 ± 0.00</td>
     </tr>
     <tr>
       <td class="gt_row gt_center">Random</td>
       <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
+      <td class="gt_row gt_right"> 1,996 ± 0.06</td>
+      <td class="gt_row gt_right"> 3,996 ± 0.06</td>
+      <td class="gt_row gt_right"> 8,074 ± 0.06</td>
     </tr>
     <tr>
       <td class="gt_row gt_center gt_striped">Scale Free</td>
       <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
+      <td class="gt_row gt_right gt_striped"> 2,000 ± 0.00</td>
+      <td class="gt_row gt_right gt_striped"> 4,000 ± 0.00</td>
+      <td class="gt_row gt_right gt_striped"> 8,078 ± 0.00</td>
     </tr>
     <tr>
       <td class="gt_row gt_center">Watts Strogatz</td>
       <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
+      <td class="gt_row gt_right"> 2,000 ± 0.00</td>
+      <td class="gt_row gt_right"> 4,000 ± 0.00</td>
+      <td class="gt_row gt_right"> 8,078 ± 0.00</td>
     </tr>
     <tr class="gt_group_heading_row">
-      <td colspan="4" class="gt_group_heading">Random Agents</td>
+      <td colspan="5" class="gt_group_heading">Random agents</td>
     </tr>
     <tr>
       <td class="gt_row gt_center gt_striped">Barabasi Albert</td>
       <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
+      <td class="gt_row gt_right gt_striped">   999 ± 0.00</td>
+      <td class="gt_row gt_right gt_striped"> 1,999 ± 0.00</td>
+      <td class="gt_row gt_right gt_striped"> 4,038 ± 0.00</td>
     </tr>
     <tr>
       <td class="gt_row gt_center">Facebook</td>
       <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
+      <td class="gt_row gt_right"> 5,397 ±11.16</td>
+      <td class="gt_row gt_right">21,608 ±27.06</td>
+      <td class="gt_row gt_right">88,234 ± 0.00</td>
     </tr>
     <tr>
       <td class="gt_row gt_center gt_striped">Random</td>
       <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
+      <td class="gt_row gt_right gt_striped"> 1,996 ± 0.06</td>
+      <td class="gt_row gt_right gt_striped"> 3,996 ± 0.07</td>
+      <td class="gt_row gt_right gt_striped"> 8,074 ± 0.06</td>
     </tr>
     <tr>
       <td class="gt_row gt_center">Scale Free</td>
       <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
-      <td class="gt_row gt_center">1000</td>
+      <td class="gt_row gt_right"> 2,000 ± 0.00</td>
+      <td class="gt_row gt_right"> 4,000 ± 0.00</td>
+      <td class="gt_row gt_right"> 8,078 ± 0.00</td>
     </tr>
     <tr>
       <td class="gt_row gt_center gt_striped">Watts Strogatz</td>
       <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
-      <td class="gt_row gt_center gt_striped">1000</td>
+      <td class="gt_row gt_right gt_striped"> 2,000 ± 0.00</td>
+      <td class="gt_row gt_right gt_striped"> 4,000 ± 0.00</td>
+      <td class="gt_row gt_right gt_striped"> 8,078 ± 0.00</td>
     </tr>
   </body>
   

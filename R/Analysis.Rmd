@@ -131,20 +131,28 @@ results %>%
             
             simulations = n()) %>% 
   ungroup() %>% 
-  spread(agent_count, simulations) %>% 
+  mutate(edges = paste0(format(mean_edges, digits = 1, big.mark = ",")," ±",format(edges_se, digits = 1))) %>% 
+  select(-mean_edges, -edges_se) %>% 
+  spread(agent_count, value = edges) %>% 
   gt() %>% 
-  tab_header("Overview of batch simulation count by configuration") %>% 
+  tab_header(paste0("Overview of network properties by configuration"),
+             subtitle = paste0("In total ", format(simulation_count, big.mark = " "), " simulations were run using 10 different settings.")) %>%
    tab_row_group(
-    group = "Personality based Agents",
+    group = "Personality based agents",
     rows = 1:5
     ) %>% 
   tab_row_group(
-    group = "Random Agents",
+    group = "Random agents",
     rows = 6:10
     ) %>% 
-  tab_spanner("Agent Count", columns = vars("1000","2000","4039")) %>% 
+  tab_spanner("Edges by network size (and standard error)", columns = vars("1000","2000","4039")) %>% 
   cols_hide(vars("agent_generator")) %>% 
-  cols_label(network_generator = "Network type") 
+  cols_label(network_generator = "Network type") %>% 
+  cols_label("1000" = "1000 agents") %>% 
+  cols_label("2000" = "2000 agents") %>% 
+  cols_label("4039" = "4039 agents") %>% 
+  cols_label("simulations" = "# of simulations") %>% 
+  cols_align("right", columns = c("1000", "2000", "4039")) 
   
 ```
 
