@@ -2,7 +2,6 @@
 using Pkg
 
 Pkg.add("LightGraphs")
-Pkg.add("BenchmarkTools")
 Pkg.add("CSV")
 Pkg.add("Logging")
 Pkg.add("Random")

@@ -12,7 +12,6 @@ using CSV
 using Logging
 using DataFrames
 using Dates
-#using BenchmarkTools
 
 include("network_generators.jl")
 include("agent_generators.jl")

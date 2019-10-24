@@ -3,7 +3,6 @@ using Random
 using LightGraphs
 using CSV
 using Logging
-using BenchmarkTools
 
 include("network_generators.jl")
 include("agent_generators.jl")

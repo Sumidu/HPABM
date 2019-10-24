@@ -1,5 +1,5 @@
 ---
-title: "HappieSim"
+title: "Opinion Formation in Networks"
 date: "`r Sys.Date()`"
 output:
   rmdformats::material:
@@ -164,14 +164,17 @@ final_results <- results %>% group_by(runid, agent_generator, network_generator)
 final_results %>% 
   ggplot() +
   aes(x = network_generator, y = seen) + geom_boxplot()
+```
 
 
-
-
-
-
+## Correlation of affective and sending individuals
+```{r cor}
 cor(final_results$affective_value, final_results$sent)
+```
 
+
+## Linear model of parameters that play a role
+```{r linear model}
 lm(sent ~ affective_value + cognitive_value + agent_count + agent_generator + network_generator, data = final_results )
 ```
 
