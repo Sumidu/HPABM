@@ -1,9 +1,22 @@
 ---
-title: "Opinion Formation in Networks"
+title: "Opinion Formation on the Internet"
 date: "`r Sys.Date()`"
+bibliography: ["rpackages.bib", "refs.bib"]
+biblio-style: "apalike"
+link-citations: true
 output:
   rmdformats::material:
     highlight: kate
+    collapsed: false
+    dev: png
+    self_contained: true
+    number_sections: true
+    code_folding: hide
+    thumbnails: true
+    gallery: true
+    fig_width: 6
+    fig_height: 3.5
+    df_print: kable
 ---
 
 
@@ -28,6 +41,15 @@ library(tidyverse)
 library(scales)
 library(gt)
 ```
+
+
+
+# Abstract
+Today the majority of people uses online social networks not only to stay in contact with friends, but also find information about relevant topics, or to spread information. While a lot of research has been conducted into opinion formation, only little is known about what influences the spread of information in online social networks. To answer this question, we created an agent-based model and simulated message spreading in social networks using a latent-process model. In our model, we varied four different content types, five different network types, and we varied between a model that also includes a personality model of the agents and a model that did not. We found out, that the network type has only a weak influence on the distribution of content, where the message type and the personality of the user have a clear influence on how many users receive a message.  
+
+```{r test-main, child = '10_intro.rmd'}
+```
+
 
 # Analysis
 
@@ -179,4 +201,15 @@ lm(sent ~ affective_value + cognitive_value + agent_count + agent_generator + ne
 ```
 
 
-# Descriptions
+# Used Packages
+The following R packages were used:
+
+* Package: knitr	 by @R-knitr
+* Package: tidyverse	 by @R-tidyverse
+* Package: rmdformats	 by @R-rmdformats
+* Package: DT	 by @R-DT
+* Package: kableExtra	 by @R-kableExtra
+* Package: scales	 by @R-scales
+* Package: psych	 by @R-psych
+
+`r if (knitr::is_html_output()) '# References {-}'`
