@@ -18,6 +18,10 @@ function generateRandomMessage(rng)
     return a
 end
 
+
+"""
+    generates the message used in the Paper
+"""
 function generateFourTypeMessage(rng)
     message_case = rand(rng, 1:4)
 

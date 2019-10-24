@@ -20,5 +20,6 @@ Pkg.add("Gadfly")
 Pkg.add("Colors")
 Pkg.add("HTTP")
 Pkg.add("JSON")
+Pkg.add("Slacker")
 
 Pkg.build()

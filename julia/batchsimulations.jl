@@ -5,8 +5,11 @@
 #   The configuration is loaded by a configfile.jl
 
 include("simulation.jl")
-include("slacker.jl")
+using Slacker
 
+"""
+    reports a progess output
+"""
 function print_progress(i::Int64, max::Int64)
     if i % (max / 10) == 0
         rightnow = Dates.Time(Dates.now())
@@ -28,8 +31,7 @@ function batchrun(
     message_generator,
 )
 
-
-
+    # generate a different RNG for each batch (used for parallelization)
     rngs = [x = Random.MersenneTwister(i) for i = 1:batches]
 
     dv = Vector{Tuple}()
@@ -55,9 +57,11 @@ end
 
 
 
+## Here the configuration is loaded that determines the runconfiguration
+#include("config_haapie.jl") # this is the actual study configuration
+include("config_demo.jl") # this is a demo configuration that runs quickly
 
-include("config_haapie.jl")
-
+# Create full factorial design
 config = [(b, a, s, ag, ng, mg) for b in batches, a in agent_range, s in step, ag in agent_generators, ng in network_generators, mg in message_generators]
 
 @info "This configuration creates $(length(config)) different settings."
@@ -91,21 +95,24 @@ for conf in config
 end
 total_runtime = time() - start_time
 
+# Write the output to a csv file for later use
 @info "Writing file... $(size(df,1)) lines"
-fn_out = joinpath("output", "results.csv")
+fn_out = joinpath("output", "results_demo.csv")
 CSV.write(fn_out, df)
 @info "done."
 
 ms = Dates.Millisecond(Int(round(total_runtime * 1000)))
 rt = Dates.canonicalize(Dates.CompoundPeriod(ms))
 
+# generate a finished message
 message = "The $(length(config)) simulations on $(gethostname()) have completed in $rt."
 
-if true
-    sendSlackMessage("#digimuen", message; icon_emoji = ":juliabot:")
+
+# has slack been configured?
+slack_configs = Slacker.readSettingsFile() |> length
+if slack_configs > 0
+    # Send to Slack?
+    Slacker.sendSlackMessage(message)
 else
     @info message
 end
-
-#checkstring = Random.randstring(MersenneTwister(abs(df[!, :pseudo_seed][1])))
-#@info "Result checksum string $checkstring"

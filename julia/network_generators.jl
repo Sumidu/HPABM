@@ -27,6 +27,7 @@ function generateBarabasi(;rng, agents, density = 2)
     return g
 end
 
+
 function generateWattsStrogatz(;rng, agents, density = 2)
     agent_count = length(agents)
     edge_count = Int(round(agent_count * density))

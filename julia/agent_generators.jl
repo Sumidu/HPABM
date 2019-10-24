@@ -62,7 +62,9 @@ function hasSent(agent)
 end
 
 
-
+"""
+    Constructor for the completely random agent
+"""
 function generateRandomAgent(rng::MersenneTwister)
     a = OpinionAgent(0, 0, 0, 0, 0, 0, 0,  agent_new)
     a.extraversion = rand(rng)
@@ -92,6 +94,9 @@ function nrange(x)
     (tanh(x) + 1) / 2
 end
 
+"""
+    constructs a personality based agent
+"""
 function generatePersonalityAgent(rng::MersenneTwister)
     a = OpinionAgent(0, 0, 0, 0, 0, 0,0,  agent_new)
 
@@ -105,17 +110,5 @@ function generatePersonalityAgent(rng::MersenneTwister)
     a.affective_attitude = rand(rng)
     a.posting_threshold = (rand(rng) + a.conscientiousness) /2
     a.noticing_threshold = (rand(rng) + (1 - a.openness)) / 2
-    return a
-end
-
-
-function generateNormalRandomAgent(rng::MersenneTwister)
-    a = OpinionAgent(0, 0, 0, 0, 0, 0, 0, agent_new)
-    a.extraversion = randn(rng)
-    a.openness = randn(rng)
-    a.cognitive_attitude = randn(rng)
-    a.affective_attitude = randn(rng)
-    a.posting_threshold = randn(rng)
-    a.noticing_threshold = randn(rng)
     return a
 end

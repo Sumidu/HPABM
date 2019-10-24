@@ -1,3 +1,11 @@
+#
+# This file contains the main simulation
+# It contains a simulation method that can be called from
+# a batch runner.
+#
+
+
+
 using Random
 using LightGraphs
 using CSV
@@ -55,7 +63,9 @@ function message_spread!(
 
 end
 
-
+"""
+    The dual process model evaluation function. (not used alternative strat.)
+"""
 function evaluate2Message(agent, message)
     affective_process = sqrt(message.affective_value * agent.affective_attitude)
     cognitive_process = sqrt(message.cognitive_value * agent.cognitive_attitude)
@@ -63,7 +73,9 @@ function evaluate2Message(agent, message)
     return eval
 end
 
-
+"""
+    The dual process model evaluation function.
+"""
 function evaluateMessage(agent, message)
     affective_process = (message.affective_value + agent.affective_attitude)/2
     cognitive_process = (message.cognitive_value + agent.cognitive_attitude)/2

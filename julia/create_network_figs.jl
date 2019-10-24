@@ -11,6 +11,9 @@ using Colors
 import Graphs
 import Gadfly
 
+"""
+    function to create a usabe plot of networks
+"""
 function myplot(g, title = "Title"; nodesize_multiplier = 2)
     nodesize = [log(degree(g, v)+3)/10 for v in vertices(g)]
     nodefillc = [RGBA(0.1,0.1,0.1, 0.66) for v in vertices(g)]
@@ -19,11 +22,17 @@ function myplot(g, title = "Title"; nodesize_multiplier = 2)
     plt
 end
 
+"""
+    saves the plot to a pdf file using Cairo
+"""
 function saveplot(plt, filename = "networkplot.pdf")
     draw(PDF(joinpath("output/", filename), 12cm, 12cm), plt)
 end
 
 
+"""
+    remove isolated vertices for nice printing
+"""
 function pruneIsolatedVertices!(g)
     v_remove = Int64[]
     for v in vertices(g)
@@ -35,9 +44,12 @@ function pruneIsolatedVertices!(g)
 end
 
 
-const network_size = 500
+const network_size = 5000
 
+# use a single random number generator to ensure all figures look the same
 rng = MersenneTwister(1)
+
+#-----------------
 # Facebook
 g = SNAPDatasets.loadsnap(:facebook_combined)
 while network_size < length(vertices(g))
@@ -51,7 +63,7 @@ plt1 = myplot(g, "Facebook")
 # Barabasi
 g = barabasi_albert(network_size, 1, seed = 1)
 pruneIsolatedVertices!(g)
-plt2 = myplot(g, "Barabasi Albert")
+plt2 = myplot(g, "Barábasi Albert")
 
 
 # Watts
@@ -66,7 +78,9 @@ pruneIsolatedVertices!(g)
 plt4 = myplot(g, "Scale Free Network")
 
 
-plt = gridstack([plt1 plt2; plt3 plt4])
 
+# Create a grid plot
+plt = gridstack([plt1 plt2; plt3 plt4])
 plt = Gadfly.title(plt, "Different network generators")
+
 saveplot(plt, "allnets.pdf")
