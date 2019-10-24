@@ -5,7 +5,7 @@
 #   The configuration is loaded by a configfile.jl
 
 include("simulation.jl")
-using Slacker
+import Slacker
 
 """
     reports a progess output
@@ -58,8 +58,8 @@ end
 
 
 ## Here the configuration is loaded that determines the runconfiguration
-#include("config_haapie.jl") # this is the actual study configuration
-include("config_demo.jl") # this is a demo configuration that runs quickly
+include("config_haapie.jl") # this is the actual study configuration
+#include("config_demo.jl") # this is a demo configuration that runs quickly
 
 # Create full factorial design
 config = [(b, a, s, ag, ng, mg) for b in batches, a in agent_range, s in step, ag in agent_generators, ng in network_generators, mg in message_generators]
@@ -97,7 +97,7 @@ total_runtime = time() - start_time
 
 # Write the output to a csv file for later use
 @info "Writing file... $(size(df,1)) lines"
-fn_out = joinpath("output", "results_demo.csv")
+fn_out = joinpath("output", "results.csv")
 CSV.write(fn_out, df)
 @info "done."
 
@@ -109,10 +109,9 @@ message = "The $(length(config)) simulations on $(gethostname()) have completed 
 
 
 # has slack been configured?
-slack_configs = Slacker.readSettingsFile() |> length
-if slack_configs > 0
-    # Send to Slack?
-    Slacker.sendSlackMessage(message)
+
+if Slacker.hasConfig()
+    Slacker.sendMessage(message)
 else
     @info message
 end
