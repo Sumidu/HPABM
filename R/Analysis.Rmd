@@ -144,7 +144,7 @@ ggsave("../output/spread3.png", p, width = 7, height = 5, dpi = 600)
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 results %>% 
   filter(step == 1) %>%  
   group_by(agent_generator, network_generator, agent_count) %>% 
