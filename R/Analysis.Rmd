@@ -106,6 +106,16 @@ results <- read_csv(filename) %>%
          ) %>% mutate(content_type = factor(value, levels = rev(c("0.2/0.2", "0.2/0.8", "0.8/0.2", "0.8/0.8")),
                                      labels = rev(c("weak content", "mostly cognitive", "mostly affective", "both"))))
 
+
+
+full_design <- expand.grid(step = unique(results$step),
+                           agent_count = unique(results$agent_count),
+            network_generator = unique(results$network_generator),
+            runid = unique(results$runid),
+            agent_generator = unique(results$agent_generator))
+
+results <- full_design %>% left_join(results) %>% fill(everything(), start_agent, new_agents)
+
 # Only the last step
 ```
 
@@ -116,11 +126,14 @@ count_select <- 4039
 simulation_count <- results %>% 
   filter(agent_count == count_select, step == 1) %>% count() %>% pull()
 
+max_step <- results %>% pull(step) %>% max()
+
 (p <- results %>% 
   filter(agent_count == count_select) %>% 
   #sample_n(1000) %>% 
   ggplot() +
-  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  aes(x = step, y = (seen+sent)/agent_count, group = interaction(runid, network_generator), color = content_type)+ 
+    geom_line(alpha = 0.1) + 
   facet_grid(factor(agent_generator)~network_generator) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_colour_brewer(palette = "Set1") +
@@ -133,6 +146,52 @@ simulation_count <- results %>%
 
 ggsave("../output/spread1.png", p, width = 7, height = 5, dpi = 600)
 ```
+
+```{r eval=FALSE, include=FALSE}
+results %>% filter(runid == 1, step == 1)
+
+full_design <- expand.grid(step = unique(results$step),
+                           agent_count = unique(results$agent_count),
+            network_generator = unique(results$network_generator),
+            runid = unique(results$runid),
+            agent_generator = unique(results$agent_generator))
+
+test <- full_design %>% left_join(results) %>% fill(everything(), start_agent, new_agents)
+
+```
+
+
+
+
+```{r}
+results %>% 
+  filter(agent_count == count_select) %>% 
+   group_by(network_generator, agent_generator, step, content_type) %>% 
+   summarize(seen_p = mean((seen+sent)/agent_count),
+             seen_sd = sd((seen+sent)/agent_count),
+             simulations = n()) %>% 
+  mutate(seen_se = seen_sd / sqrt(simulations) ) %>% 
+  ggplot() +
+  aes(x = step, y = seen_p, ymin = seen_p - seen_se, ymax = seen_p + seen_se, color = content_type) +
+  geom_ribbon(alpha = 0.7, fill = "lightgray", size = 0.1) +
+  geom_errorbar(alpha = 0.7) +
+  geom_line(size = 0.1) +
+  geom_point(size = 0.3, alpha = 0.7) +
+  facet_grid(agent_generator~network_generator) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_colour_brewer(palette = "Set1") +
+  guides(colour = guide_legend(override.aes = list(alpha = 1)),
+         ribbon = FALSE) +
+  labs(title = "Spread of messages by content type, agent, and network",
+       subtitle = "Network penetration depends mostly on agent type and content",
+       caption = paste0("Ribbon and error bars denotes the standard error of the mean (of ",simulation_count," simulations)"),
+       x = "Simulation step", y = paste0("Mean proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
+    theme_bw() ->p
+
+p
+ggsave("../output/spreadMSE.png", p, width = 7, height = 5, dpi = 600)
+```
+
 
 ```{r visualize_2, cache=TRUE}
 
