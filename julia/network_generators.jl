@@ -1,6 +1,16 @@
 using SNAPDatasets
 
 
+function pruneIsolatedVertices!(g)
+    v_remove = Int64[]
+    for v in vertices(g)
+        if degree(g,v) < 1
+            push!(v_remove, v)
+        end
+    end
+    rem_vertices!(g, v_remove)
+end
+
 ## This file contains the different network generators
 function generateNetworkLiMinai(agents, community_count, community_size, ve, a)
     #am ::Array{Int64,2}
@@ -15,14 +25,58 @@ function generateNetworkLiMinai(agents, community_count, community_size, ve, a)
     @error "Not implemented yet"
 end
 
+function generateStochasticBlockModel(;rng, agents, cluster = 20)
+    agent_count = length(agents)
+    #rng = MersenneTwister(1)
+    #agent_count = 4000
 
+    nsize = agent_count #Int(round(agent_count / cluster))
+    cluster = div(nsize, 100)
+    minclustersize = 7
+    csize = rand(rng, cluster)
+    csizesum = sum(csize)
+    clustersizes = zeros(Int64, cluster)
+    for i in 1:cluster
+        clustersizes[i] = minclustersize +
+        div((nsize-(minclustersize*cluster)) * csize[i],csizesum) + 1
+
+    end
+    clustersizes[1] = max((clustersizes[1] + (nsize - sum(clustersizes))), minclustersize)
+
+    sigma = zeros(Real, cluster, cluster)
+
+    for i in 1:cluster
+        for j in i:cluster
+            if(i == j)
+                #sigma[i,j] = Int(round(min(max_edges * (1-rand(rng)*rand(rng)) + 1, clustersizes[i]))) -1
+                sigma[i,j] = clustersizes[i] * rand(rng, 0.01:0.0001:0.05)
+
+            else
+                #sigma[i,j] = 0.1*rand(rng) *rand(rng)* min(clustersizes[i], clustersizes[j])
+                if rand(rng) < 0.6
+                    sigma[i,j] = 0
+                else
+                    sigma[i,j] = rand(rng, 0:0.0001:0.01)
+                end
+            end
+
+        end
+    end
+
+    println(sigma)
+    println(clustersizes)
+    g = stochastic_block_model(sigma, clustersizes, seed = rand(rng, Int64))
+    @info "created."
+    pruneIsolatedVertices!(g)
+    g
+end
 
 function generateBarabasi(;rng, agents, density = 2)
     agent_count = length(agents)
     #edge_count = Int(round(agent_count * density))
     #rng = MersenneTwister(1)
     #agent_count = 100
-    g = barabasi_albert(agent_count, 1, seed = rand(rng, Int64))
+    g = barabasi_albert(agent_count, 4, seed = rand(rng, Int64))
 
     return g
 end

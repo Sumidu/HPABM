@@ -20,7 +20,7 @@ output:
 ---
 
 
-```{r knitr_init, cache=FALSE, include=FALSE}
+```{r setup, cache=FALSE, include=FALSE}
 library(knitr)
 library(rmdformats)
 
@@ -100,14 +100,14 @@ results <- read_csv(filename) %>%
                                   labels = c("Personality", "Random")
                                   ),
          network_generator = factor(network_generator,
-                                    levels = c("generateBarabasi", "generateFacebook", "generateRandomNetwork", "generateScaleFree", "generateWattsStrogatz"),
-                                    labels = c("Barábasi Albert", "Facebook", "Random", "Scale Free", "Watts Strogatz")),
+                                    levels = c("generateBarabasi", "generateFacebook", "generateRandomNetwork", "generateStochasticBlockModel", "generateScaleFree", "generateWattsStrogatz"),
+                                    labels = c("Barábasi Albert", "Facebook", "Random", "Stochastic Block Model", 
+                                               "Scale Free (Cho et al.)",  "Watts Strogatz")),
          value = paste0(affective_value,"/",cognitive_value) 
          ) %>% mutate(content_type = factor(value, levels = rev(c("0.2/0.2", "0.2/0.8", "0.8/0.2", "0.8/0.8")),
                                      labels = rev(c("weak content", "mostly cognitive", "mostly affective", "both"))))
 
-
-
+results$network_generator %>% factor() %>%  levels()
 full_design <- expand.grid(step = unique(results$step),
                            agent_count = unique(results$agent_count),
             network_generator = unique(results$network_generator),
@@ -115,21 +115,57 @@ full_design <- expand.grid(step = unique(results$step),
             agent_generator = unique(results$agent_generator))
 
 results <- full_design %>% left_join(results) %>% fill(everything(), start_agent, new_agents)
+```
 
+
+```{r get_degree_distribution, cache=TRUE}
+plot_degree <- function(x) {
+  as.numeric(str_split(x, pattern = "; ", simplify = TRUE))
+}
+
+x <- results[1,]$degree_centrality
+plot(density(plot_degree(x)))
+
+# clustering 
+results %>% filter(step == 1) %>% 
+  ggplot() + 
+  aes(x = factor(agent_count), y = clustering_coefficient) + 
+  geom_violin() + 
+  geom_boxplot() +
+  coord_flip() + 
+  scale_y_log10() +
+  #geom_point() + 
+  facet_wrap(~network_generator) + 
+  labs(x = "Network Size", y = "Clustering Coefficient (log)") +
+  ggtitle("Distribution of Clustering Coefficient by Network Generator")
+
+# clustering 
+results %>% filter(step == 1) %>% 
+  ggplot() + 
+  aes(x = factor(agent_count), y = community_count) + 
+  geom_violin() +
+  geom_boxplot() + 
+  geom_point() +
+  coord_flip() +
+  scale_y_log10() +
+  #geom_point() + 
+  facet_wrap(~network_generator) +
+  labs(x = "Network Size", y = "Community Count Coefficient (log)") +
+  ggtitle("Distribution of Community Count by Network Generator")
 # Only the last step
 ```
 
 
 ```{r visualize_1, cache=TRUE}
 
-count_select <- 4039
+count_select <- 3500
 simulation_count <- results %>% 
-  filter(agent_count == count_select, step == 1) %>% count() %>% pull()
+  filter(agent_count > count_select, step == 1) %>% count() %>% pull()
 
 max_step <- results %>% pull(step) %>% max()
 
 (p <- results %>% 
-  filter(agent_count == count_select) %>% 
+  filter(agent_count > count_select) %>% 
   #sample_n(1000) %>% 
   ggplot() +
   aes(x = step, y = (seen+sent)/agent_count, group = interaction(runid, network_generator), color = content_type)+ 
@@ -165,10 +201,10 @@ test <- full_design %>% left_join(results) %>% fill(everything(), start_agent, n
 
 ```{r}
 results %>% 
-  filter(agent_count == count_select) %>% 
+  filter(agent_count > count_select) %>% 
    group_by(network_generator, agent_generator, step, content_type) %>% 
-   summarize(seen_p = mean((seen+sent)/agent_count),
-             seen_sd = sd((seen+sent)/agent_count),
+   summarize(seen_p = mean((seen + sent)/agent_count),
+             seen_sd = sd((seen + sent)/agent_count),
              simulations = n()) %>% 
   mutate(seen_se = seen_sd / sqrt(simulations) ) %>% 
   ggplot() +
@@ -186,7 +222,7 @@ results %>%
        subtitle = "Network penetration depends mostly on agent type and content",
        caption = paste0("Ribbon and error bars denotes the standard error of the mean (of ",simulation_count," simulations)"),
        x = "Simulation step", y = paste0("Mean proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
-    theme_bw() ->p
+    theme_bw() -> p
 
 p
 ggsave("../output/spreadMSE.png", p, width = 7, height = 5, dpi = 600)
@@ -203,7 +239,7 @@ simulation_count <- results %>%
   filter(agent_count == count_select) %>% 
   #sample_n(1000) %>% 
   ggplot() +
-  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  aes(x = step, y = (seen + sent)/agent_count, group = runid, color = content_type) + geom_line(alpha = 0.1) + 
   facet_grid(factor(agent_generator)~network_generator) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_colour_brewer(palette = "Set1") +
@@ -213,6 +249,7 @@ simulation_count <- results %>%
        caption = paste0("Each line represents the spread of a message in one simulation (of ",simulation_count," simulations)"),
        x = "Simulation step", y = paste0("Proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
     theme_bw())
+p
 
 ggsave("../output/spread2.png", p, width = 7, height = 5, dpi = 600)
 ```
@@ -227,7 +264,8 @@ simulation_count <- results %>%
   filter(agent_count == count_select) %>% 
   #sample_n(1000) %>% 
   ggplot() +
-  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  aes(x = step, y = (seen + sent)/agent_count, group = runid, color = content_type) +
+  geom_line(alpha = 0.1) + 
   facet_grid(factor(agent_generator)~network_generator) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_colour_brewer(palette = "Set1") +

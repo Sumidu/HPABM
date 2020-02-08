@@ -44,7 +44,7 @@ function pruneIsolatedVertices!(g)
 end
 
 
-const network_size = 5000
+const network_size = 1000
 
 # use a single random number generator to ensure all figures look the same
 rng = MersenneTwister(1)
@@ -73,14 +73,20 @@ plt3 = myplot(g, "Watts Strogatz")
 
 # scalefree
 
-g = static_scale_free(network_size, network_size * 2, 2.5, seed = 1)
+g = static_scale_free(network_size, network_size * 30, 2.1, seed = 1)
 pruneIsolatedVertices!(g)
 plt4 = myplot(g, "Scale Free Network")
 
+# stochastic blockmodel (2 types)
 
+nsize = Int(round(network_size / 3))
+
+g = stochastic_block_model([10 2 0.1; 1 10 0.1; 1 1 10], repeat([nsize], 3))
+plt5 = myplot(g, "Stochastic Block Model (3 Blocks)")
+saveplot(plt5, "sbm.pdf")
 
 # Create a grid plot
-plt = gridstack([plt1 plt2; plt3 plt4])
+plt = gridstack([plt1 plt2; plt3 plt4; plt5 plt5])
 plt = Gadfly.title(plt, "Different network generators")
 
 saveplot(plt, "allnets.pdf")
