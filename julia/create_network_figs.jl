@@ -44,11 +44,13 @@ function pruneIsolatedVertices!(g)
 end
 
 
+include("network_generators.jl")
+
 const network_size = 1000
 
 # use a single random number generator to ensure all figures look the same
 rng = MersenneTwister(1)
-
+agents = [x for x in 1:network_size]
 #-----------------
 # Facebook
 g = SNAPDatasets.loadsnap(:facebook_combined)
@@ -81,12 +83,17 @@ plt4 = myplot(g, "Scale Free Network")
 
 nsize = Int(round(network_size / 3))
 
-g = stochastic_block_model([10 2 0.1; 1 10 0.1; 1 1 10], repeat([nsize], 3))
-plt5 = myplot(g, "Stochastic Block Model (3 Blocks)")
+g = generateRandomNetwork(rng = rng, agents = agents)
+pruneIsolatedVertices!(g)
+
+plt5 = myplot(g, "Random Graph")
+
+g = generateStochasticBlockModel(rng = rng, agents = agents)
+plt6 = myplot(g, "Stochastic Block Model")
 saveplot(plt5, "sbm.pdf")
 
 # Create a grid plot
-plt = gridstack([plt1 plt2; plt3 plt4; plt5 plt5])
+plt = gridstack([plt1 plt2; plt3 plt4; plt5 plt6])
 plt = Gadfly.title(plt, "Different network generators")
 
 saveplot(plt, "allnets.pdf")

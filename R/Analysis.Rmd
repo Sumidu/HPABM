@@ -101,8 +101,8 @@ results <- read_csv(filename) %>%
                                   ),
          network_generator = factor(network_generator,
                                     levels = c("generateBarabasi", "generateFacebook", "generateRandomNetwork", "generateStochasticBlockModel", "generateScaleFree", "generateWattsStrogatz"),
-                                    labels = c("Barábasi Albert", "Facebook", "Random", "Stochastic Block Model", 
-                                               "Scale Free (Cho et al.)",  "Watts Strogatz")),
+                                    labels = c("Barábasi", "Facebook", "Random", "SBM", 
+                                               "Cho",  "Watts Strogatz")),
          value = paste0(affective_value,"/",cognitive_value) 
          ) %>% mutate(content_type = factor(value, levels = rev(c("0.2/0.2", "0.2/0.8", "0.8/0.2", "0.8/0.8")),
                                      labels = rev(c("weak content", "mostly cognitive", "mostly affective", "both"))))
@@ -137,7 +137,10 @@ results %>% filter(step == 1) %>%
   #geom_point() + 
   facet_wrap(~network_generator) + 
   labs(x = "Network Size", y = "Clustering Coefficient (log)") +
-  ggtitle("Distribution of Clustering Coefficient by Network Generator")
+  ggtitle("Distribution of Clustering Coefficient by Network Generator") +
+  theme_bw(base_size = 14) -> p
+
+ggsave("../output/clustering.pdf", p, width = 7, height = 5, dpi = 600)
 
 # clustering 
 results %>% filter(step == 1) %>% 
@@ -151,7 +154,11 @@ results %>% filter(step == 1) %>%
   #geom_point() + 
   facet_wrap(~network_generator) +
   labs(x = "Network Size", y = "Community Count Coefficient (log)") +
-  ggtitle("Distribution of Community Count by Network Generator")
+  ggtitle("Distribution of Community Count by Network Generator") +
+  theme_bw(base_size = 14) -> p
+
+ggsave("../output/community.pdf", p, width = 7, height = 5, dpi = 600)
+
 # Only the last step
 ```
 
@@ -296,11 +303,11 @@ results %>%
              subtitle = paste0("In total ", format(simulation_count, big.mark = " "), " simulations were run using 10 different settings.")) %>%
    tab_row_group(
     group = "Personality based agents",
-    rows = 1:5
+    rows = 1:6
     ) %>% 
   tab_row_group(
     group = "Random agents",
-    rows = 6:10
+    rows = 7:12
     ) %>% 
   tab_spanner("Edges by network size (and standard error)", columns = vars("1000","2000","4039")) %>% 
   cols_hide(vars("agent_generator")) %>% 
