@@ -201,6 +201,32 @@ lm(sent ~ affective_value + cognitive_value + agent_count + agent_generator + ne
 ```
 
 
+```{r}
+results %>% 
+  filter(agent_count == 1000) %>% 
+  group_by(runid) %>% 
+    arrange(desc(step)) %>% 
+    slice(1) %>% 
+  ungroup() %>% 
+  select(agent_count, agent_generator, network_generator, content_type, seen) ->
+temp_data
+
+temp_data %>% 
+  glm(seen ~ agent_generator + network_generator + content_type, data = .) -> mdl
+
+summary(mdl)  
+
+temp_data %>% 
+  ggplot() + 
+  aes(x = content_type, y = seen, group = content_type, fill = content_type) + 
+  coord_flip() +
+  stat_summary(fun.data = "mean_cl_boot", geom = "errorbar") + 
+  facet_grid(agent_generator ~network_generator)
+
+```
+
+
+
 # Used Packages
 The following R packages were used:
 
