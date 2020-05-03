@@ -96,6 +96,15 @@ function step_model(rng, agents, network, message)
 end
 
 function evaluate(runid, pseudo_seed, step, agents, network, start_agent, message)
+    cc = 0
+    dc = 0
+    com = 0
+    if step == 1
+        cc = LightGraphs.global_clustering_coefficient(network)
+        dc = join(degree_centrality(network), "; ")
+        com = maximum(label_propagation(network)[1])
+    end
+
     return (
         runid,
         pseudo_seed,
@@ -108,7 +117,11 @@ function evaluate(runid, pseudo_seed, step, agents, network, start_agent, messag
         count(hasSent, agents),
         message.cognitive_value,
         message.affective_value,
-        length(edges(network))
+        length(edges(network)),
+        cc,
+        dc,
+        com
+
     )
 end
 
@@ -128,7 +141,10 @@ function tuple2df(tuple_array)
          :sent,
          :cognitive_value,
          :affective_value,
-         :edge_count
+         :edge_count,
+         :clustering_coefficient,
+         :degree_centrality,
+         :community_count
         ],
     )
     return res

@@ -94,6 +94,11 @@ function nrange(x)
     (tanh(x) + 1) / 2
 end
 
+
+#### look into wikipedia for faste nrange -> wolfram alph polynom series
+
+
+
 """
     constructs a personality based agent
 """

@@ -5,3 +5,4 @@ deps/deps.jl
 output/*
 .Rproj.user
 .DS_Store
+.Rhistory

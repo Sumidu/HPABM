@@ -20,7 +20,7 @@ output:
 ---
 
 
-```{r knitr_init, cache=FALSE, include=FALSE}
+```{r setup, cache=FALSE, include=FALSE}
 library(knitr)
 library(rmdformats)
 
@@ -53,6 +53,45 @@ Today the majority of people uses online social networks not only to stay in con
 
 # Analysis
 
+Using the agent-based model, we analyzed whether different initial
+settings lead to different outcomes. As initial configurations, we used
+different content types (*affective content*, *cognitive content*,
+*both*, *weak content*) and different network types (*Facebook*,
+*Barábasi-Albert*, *Watts Strogatz*, *Scale Free Network*, *Random
+Network*). Further, we compared whether the use of a *personality model*
+for the creation of the agents in our simulation leads to a different
+outcome than the simulation runs without the *personality model*. Using
+these different initial settings, we found the following results.
+
+Our results are depicted in the figure below. It
+shows for each simulation step how many of the agents who saw the
+message also forwarded it. The number of forwarding agents is also
+visible for the five different network types (horizontal); for the
+agents with and without the use of the *personality model* (vertical);
+and the different content types (color).
+
+## Highest and lowest propoertion of forwarding agents
+
+As can be seen in this figure, never all agents have seen and forwarded
+the message. This applies to all initial settings. The number of
+forwarding agents was highest in the simulation, where the content is
+*both*, affective and cognitive, where the agents have a *personality*,
+and where the agents are in the *Watts Strogatz* network. Using this
+initial settings, more than 75% of the agents did forward the seen
+content.
+
+In contrast, the lowest number of forwarding agents occurred in the
+simulation, where the content is *weak* or *mostly cognitive*, where the
+agents are designed according to the *personality model* and where the
+agents are located in a *Barábasi Albert* network. The agents stop
+forwarding the message at the latest at the fourth simulation step and
+until then almost no agent has forwarded the message.
+
+So far we considered, when the proportion of forwarding agents is
+highest or lowest. Following, we look at the single factors that could
+have an influence on the proportion of forwarding agents, starting with
+the content type.
+
 ```{r read_data, cache=TRUE}
 filename <- "../output/results.csv"
 results <- read_csv(filename) %>% 
@@ -61,11 +100,64 @@ results <- read_csv(filename) %>%
                                   labels = c("Personality", "Random")
                                   ),
          network_generator = factor(network_generator,
-                                    levels = c("generateBarabasi", "generateFacebook", "generateRandomNetwork", "generateScaleFree", "generateWattsStrogatz"),
-                                    labels = c("Barabasi Albert", "Facebook", "Random", "Scale Free", "Watts Strogatz")),
+                                    levels = c("generateBarabasi", "generateFacebook", "generateRandomNetwork", "generateStochasticBlockModel", "generateScaleFree", "generateWattsStrogatz"),
+                                    labels = c("Barábasi", "Facebook", "Random", "SBM", 
+                                               "Cho",  "Watts Strogatz")),
          value = paste0(affective_value,"/",cognitive_value) 
          ) %>% mutate(content_type = factor(value, levels = rev(c("0.2/0.2", "0.2/0.8", "0.8/0.2", "0.8/0.8")),
                                      labels = rev(c("weak content", "mostly cognitive", "mostly affective", "both"))))
+
+results$network_generator %>% factor() %>%  levels()
+full_design <- expand.grid(step = unique(results$step),
+                           agent_count = unique(results$agent_count),
+            network_generator = unique(results$network_generator),
+            runid = unique(results$runid),
+            agent_generator = unique(results$agent_generator))
+
+results <- full_design %>% left_join(results) %>% fill(everything(), start_agent, new_agents)
+```
+
+
+```{r get_degree_distribution, cache=TRUE}
+plot_degree <- function(x) {
+  as.numeric(str_split(x, pattern = "; ", simplify = TRUE))
+}
+
+x <- results[1,]$degree_centrality
+plot(density(plot_degree(x)))
+
+# clustering 
+results %>% filter(step == 1) %>% 
+  ggplot() + 
+  aes(x = factor(agent_count), y = clustering_coefficient) + 
+  geom_violin() + 
+  geom_boxplot() +
+  coord_flip() + 
+  scale_y_log10() +
+  #geom_point() + 
+  facet_wrap(~network_generator) + 
+  labs(x = "Network Size", y = "Clustering Coefficient (log)") +
+  ggtitle("Distribution of Clustering Coefficient by Network Generator") +
+  theme_bw(base_size = 14) -> p
+
+ggsave("../output/clustering.pdf", p, width = 7, height = 5, dpi = 600)
+
+# clustering 
+results %>% filter(step == 1) %>% 
+  ggplot() + 
+  aes(x = factor(agent_count), y = community_count) + 
+  geom_violin() +
+  geom_boxplot() + 
+  geom_point() +
+  coord_flip() +
+  scale_y_log10() +
+  #geom_point() + 
+  facet_wrap(~network_generator) +
+  labs(x = "Network Size", y = "Community Count Coefficient (log)") +
+  ggtitle("Distribution of Community Count by Network Generator") +
+  theme_bw(base_size = 14) -> p
+
+ggsave("../output/community.pdf", p, width = 7, height = 5, dpi = 600)
 
 # Only the last step
 ```
@@ -73,15 +165,18 @@ results <- read_csv(filename) %>%
 
 ```{r visualize_1, cache=TRUE}
 
-count_select <- 4039
+count_select <- 3500
 simulation_count <- results %>% 
-  filter(agent_count == count_select, step == 1) %>% count() %>% pull()
+  filter(agent_count > count_select, step == 1) %>% count() %>% pull()
+
+max_step <- results %>% pull(step) %>% max()
 
 (p <- results %>% 
-  filter(agent_count == count_select) %>% 
+  filter(agent_count > count_select) %>% 
   #sample_n(1000) %>% 
   ggplot() +
-  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  aes(x = step, y = (seen+sent)/agent_count, group = interaction(runid, network_generator), color = content_type)+ 
+    geom_line(alpha = 0.1) + 
   facet_grid(factor(agent_generator)~network_generator) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_colour_brewer(palette = "Set1") +
@@ -95,6 +190,52 @@ simulation_count <- results %>%
 ggsave("../output/spread1.png", p, width = 7, height = 5, dpi = 600)
 ```
 
+```{r eval=FALSE, include=FALSE}
+results %>% filter(runid == 1, step == 1)
+
+full_design <- expand.grid(step = unique(results$step),
+                           agent_count = unique(results$agent_count),
+            network_generator = unique(results$network_generator),
+            runid = unique(results$runid),
+            agent_generator = unique(results$agent_generator))
+
+test <- full_design %>% left_join(results) %>% fill(everything(), start_agent, new_agents)
+
+```
+
+
+
+
+```{r}
+results %>% 
+  filter(agent_count > count_select) %>% 
+   group_by(network_generator, agent_generator, step, content_type) %>% 
+   summarize(seen_p = mean((seen + sent)/agent_count),
+             seen_sd = sd((seen + sent)/agent_count),
+             simulations = n()) %>% 
+  mutate(seen_se = seen_sd / sqrt(simulations) ) %>% 
+  ggplot() +
+  aes(x = step, y = seen_p, ymin = seen_p - seen_se, ymax = seen_p + seen_se, color = content_type) +
+  geom_ribbon(alpha = 0.7, fill = "lightgray", size = 0.1) +
+  geom_errorbar(alpha = 0.7) +
+  geom_line(size = 0.1) +
+  geom_point(size = 0.3, alpha = 0.7) +
+  facet_grid(agent_generator~network_generator) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_colour_brewer(palette = "Set1") +
+  guides(colour = guide_legend(override.aes = list(alpha = 1)),
+         ribbon = FALSE) +
+  labs(title = "Spread of messages by content type, agent, and network",
+       subtitle = "Network penetration depends mostly on agent type and content",
+       caption = paste0("Ribbon and error bars denotes the standard error of the mean (of ",simulation_count," simulations)"),
+       x = "Simulation step", y = paste0("Mean proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
+    theme_bw() -> p
+
+p
+ggsave("../output/spreadMSE.png", p, width = 7, height = 5, dpi = 600)
+```
+
+
 ```{r visualize_2, cache=TRUE}
 
 count_select <- 2000
@@ -105,7 +246,7 @@ simulation_count <- results %>%
   filter(agent_count == count_select) %>% 
   #sample_n(1000) %>% 
   ggplot() +
-  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  aes(x = step, y = (seen + sent)/agent_count, group = runid, color = content_type) + geom_line(alpha = 0.1) + 
   facet_grid(factor(agent_generator)~network_generator) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_colour_brewer(palette = "Set1") +
@@ -115,6 +256,7 @@ simulation_count <- results %>%
        caption = paste0("Each line represents the spread of a message in one simulation (of ",simulation_count," simulations)"),
        x = "Simulation step", y = paste0("Proportion of forwarding agents (n = ",count_select,")"), color = "Content type") + 
     theme_bw())
+p
 
 ggsave("../output/spread2.png", p, width = 7, height = 5, dpi = 600)
 ```
@@ -129,7 +271,8 @@ simulation_count <- results %>%
   filter(agent_count == count_select) %>% 
   #sample_n(1000) %>% 
   ggplot() +
-  aes(x = step, y = (seen+sent)/agent_count, group = runid, color = content_type)+ geom_line(alpha = 0.1) + 
+  aes(x = step, y = (seen + sent)/agent_count, group = runid, color = content_type) +
+  geom_line(alpha = 0.1) + 
   facet_grid(factor(agent_generator)~network_generator) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_colour_brewer(palette = "Set1") +
@@ -144,13 +287,12 @@ ggsave("../output/spread3.png", p, width = 7, height = 5, dpi = 600)
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 results %>% 
   filter(step == 1) %>%  
-  group_by(agent_generator, network_generator, agent_count) %>% 
+  group_by(agent_generator, network_generator, agent_count)  %>% 
   summarize(mean_edges = mean(edge_count), 
             edges_se = sd(edge_count)/sqrt(n()),
-            
             simulations = n()) %>% 
   ungroup() %>% 
   mutate(edges = paste0(format(mean_edges, digits = 1, big.mark = ",")," ±",format(edges_se, digits = 1))) %>% 
@@ -161,11 +303,11 @@ results %>%
              subtitle = paste0("In total ", format(simulation_count, big.mark = " "), " simulations were run using 10 different settings.")) %>%
    tab_row_group(
     group = "Personality based agents",
-    rows = 1:5
+    rows = 1:6
     ) %>% 
   tab_row_group(
     group = "Random agents",
-    rows = 6:10
+    rows = 7:12
     ) %>% 
   tab_spanner("Edges by network size (and standard error)", columns = vars("1000","2000","4039")) %>% 
   cols_hide(vars("agent_generator")) %>% 
@@ -188,6 +330,58 @@ final_results %>%
   aes(x = network_generator, y = seen) + geom_boxplot()
 ```
 
+## Content types
+Comparing the four different contents, most agents forward the content,
+that is *both* affective and cognitive. Agents forward the *mostly
+affective* content the second most and significantly more frequently
+than the other two contents. The *weak content* as well as the *mostly
+cognitive content* are almost never forwarded at all. The agents also
+always stop forwarding the message before the eighth simulation step.
+Only with the *Facebook network* and without using the *personality
+model*, the *mostly cognitive content* is forwarded somewhat more
+frequently, but still forwarding does not exceed the eighth step of the
+simulation.
+
+## Network type
+After considering the influence of the content type we now look at the
+different network types and how they influence the number of forwarding
+agents. As can be seen in the figure of the simulation, the
+proportion of forwarding agents differs only slightly between the
+*Random*, *Scale-Free*, and *Watts Strogatz* network. Hardly any
+difference can be seen between the red and blue lines of the forwarding
+agents located either in the *Random* or in the *Scale-Free* network.
+The lines also look very similar for the agents in the *Watts Strogatz*
+network. While in the *Random* and in the *Scale-Free* network many
+agents already forward the *both content*, the number of forwarding
+agents for the *Watts Strogatz* network is a bit higher. If we look at
+the *mostly affective content*, the number of forwarding agents in the
+*Watts Strogatz* network differs more for the individual simulations
+than for the two previously mentioned networks.
+
+Slightly larger differences can be seen for the *Barábasi Albert* and
+the *Facebook* network. In the *Facebook* and the *Barábasi Albert*
+network, the number of agents that forward the *both content* and the
+*mostly affective content* is more similar. In the *Barábasi Albert*
+network, compared to all other network types, fewer agents forward the
+two most forwarded contents.
+
+## Personality model
+Lastly, we compare the message spread in our simulations based on
+whether the personality of our agents followed a *personality model* or
+was *randomly* generated.The figure of the simulation shows that the
+proportion of forwarding agents was always higher when they were
+equipped with a *personality model* in the *simulation*. The biggest
+deviation occurs when the agents are located in the *Barábasi Albert
+Network*.
+
+Content, network and personality
+--------------------------------
+
+Overall, the figure of the simulation shows that the proportion of
+forwarding agents mostly depends on the *content type* and if the agents
+have a *personality* designed according to the *personality model* or
+not. In contrast, the *network type* showed a lower influence except for
+*Barábasi Albert* and *Facebook* networks.
 
 ## Correlation of affective and sending individuals
 ```{r cor}
