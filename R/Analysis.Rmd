@@ -390,32 +390,85 @@ cor(final_results$affective_value, final_results$sent)
 
 
 ## Linear model of parameters that play a role
-```{r linear model}
-lm(sent ~ affective_value + cognitive_value + agent_count + agent_generator + network_generator, data = final_results )
+```{r linear model, fig.height=3, fig.width=4}
+
+mdl <- glm(sent ~ cognitive_value * affective_value + agent_generator + network_generator, data = final_results)
+summary(mdl)
+anova(mdl)
+
+library(ggeffects)
+
+df <- ggpredict(mdl, terms = c("agent_generator", "network_generator")) 
+
+plot(df)
+
+df %>% ggplot() +
+  aes(x, predicted, colour = group, group = group,
+      ymax = conf.high, ymin = conf.low) + 
+  geom_point() + 
+  geom_errorbar(width = 0.1) +
+  geom_line() +
+  theme_bw() +
+  labs(title = "Predicted values of using a general linear model for agents and networks", 
+       subtitle = "", 
+       y = "Predicted amount of agents that sent messages", 
+       x = "Agent type",
+       colour = "Network type")
+
+
+
+
+library(GGally)
+library(ggrepel)
+GGally::ggnostic(mdl)
+ggcoef(mdl, sort = "ascending") + 
+  labs(title = "Influence of message, network, and agent type in message exposure",
+                                       subtitle = "Plot of GLM coefficients with 95% confidence interval ",
+                                       x = "Estimate for agents that send the message",
+                                       y = "Model term"
+       #caption = "Only Watts Strogatz and Cho are not significant p>.001 "
+       ) +
+  scale_y_discrete(labels = c("SBM vs. random network", "cognitive value",
+                              "Facebook vs. random network", "(Intercept)",
+                              "Watts Strogatz vs. random network", "Cho vs. random network", 
+                              "Personality agent vs. random agent", 
+                              "Barábasi Albert vs random network", "affective value", "Interaction cognitive and affective value"
+  )) +
+  theme_bw() +
+  geom_text_repel(
+    #mapping = aes(label = paste(round(estimate,2),pvalue(p.value, add_p =  TRUE))), 
+    mapping = aes(label = paste(round(estimate,2))), 
+    nudge_y = 0.0,
+    box.padding = 0.5,
+    direction = "y",
+    segment.color = "gray"
+    ) +
+  NULL
+
+ggsave("coef.pdf", width = 8.3, height = 4.8)
+
 ```
 
 
 ```{r}
-results %>% 
-  filter(agent_count == 1000) %>% 
-  group_by(runid) %>% 
-    arrange(desc(step)) %>% 
-    slice(1) %>% 
-  ungroup() %>% 
-  select(agent_count, agent_generator, network_generator, content_type, seen) ->
-temp_data
+library(nnet)
 
-temp_data %>% 
-  glm(seen ~ agent_generator + network_generator + content_type, data = .) -> mdl
+final_results$network_generator <- relevel(final_results$network_generator, "Random")
+final_results$agent_generator <- relevel(final_results$agent_generator, "Random")
+final_results$content_type <- relevel(final_results$content_type, "weak content")
 
-summary(mdl)  
 
-temp_data %>% 
+test <- nnet::multinom(sent ~ agent_generator + network_generator, data = final_results)
+
+final_results %>% 
+#  filter(content_type %in% c("mostly affective", "both")) %>% 
   ggplot() + 
   aes(x = content_type, y = seen, group = content_type, fill = content_type) + 
   coord_flip() +
   stat_summary(fun.data = "mean_cl_boot", geom = "errorbar") + 
   facet_grid(agent_generator ~network_generator)
+
+
 
 ```
 
